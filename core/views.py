@@ -1,6 +1,6 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import login
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -10,6 +10,10 @@ from .models import Room, Inquiry
 from .forms import RoomForm, InquiryForm, RegisterForm
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+# Check if user is Staff (Admin)
+def is_staff_check(user):
+    return user.is_staff
 
 def home(request):
     latest_rooms = Room.objects.order_by('-created_at')[:3]
@@ -45,7 +49,6 @@ def room_detail(request, pk):
             inquiry = form.save(commit=False)
             inquiry.room = room
             inquiry.save()
-            # Stay on page and show success logic if needed
             return redirect('room_detail', pk=pk)
     else:
         form = InquiryForm()
@@ -56,21 +59,25 @@ def register(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
+            # New users are NOT staff by default, so they can't post rooms.
             login(request, user)
             return redirect('dashboard')
     else:
         form = RegisterForm()
     return render(request, 'registration/register.html', {'form': form})
 
-# --- OWNER ONLY SECTIONS (LOGIN REQUIRED) ---
-
+# --- DASHBOARD (Visible to all, but shows different things) ---
 @login_required
 def dashboard(request):
     user_rooms = Room.objects.filter(owner=request.user).order_by('-created_at')
-    user_inquiries = Inquiry.objects.filter(room__owner=request.user).order_by('-created_at')
-    return render(request, 'core/dashboard.html', {'rooms': user_rooms, 'inquiries': user_inquiries})
+    # Show inquiries sent TO the owner (if they are an owner)
+    owner_inquiries = Inquiry.objects.filter(room__owner=request.user).order_by('-created_at')
+    return render(request, 'core/dashboard.html', {'rooms': user_rooms, 'inquiries': owner_inquiries})
+
+# --- RESTRICTED VIEWS (STAFF ONLY) ---
 
 @login_required
+@user_passes_test(is_staff_check, login_url='/dashboard/')
 def create_room(request):
     if request.method == 'POST':
         form = RoomForm(request.POST, request.FILES)
@@ -84,6 +91,7 @@ def create_room(request):
     return render(request, 'core/room_form.html', {'form': form, 'title': 'Add New Room'})
 
 @login_required
+@user_passes_test(is_staff_check, login_url='/dashboard/')
 def edit_room(request, pk):
     room = get_object_or_404(Room, pk=pk, owner=request.user)
     if request.method == 'POST':
@@ -96,6 +104,7 @@ def edit_room(request, pk):
     return render(request, 'core/room_form.html', {'form': form, 'title': 'Edit Room'})
 
 @login_required
+@user_passes_test(is_staff_check, login_url='/dashboard/')
 def delete_room(request, pk):
     room = get_object_or_404(Room, pk=pk, owner=request.user)
     if request.method == 'POST':
@@ -103,18 +112,15 @@ def delete_room(request, pk):
         return redirect('dashboard')
     return render(request, 'core/room_confirm_delete.html', {'room': room})
 
-# --- PUBLIC PAYMENT (NO LOGIN REQUIRED) ---
-
+# --- PUBLIC PAYMENT ---
 def create_checkout_session(request, pk):
     room = get_object_or_404(Room, pk=pk)
     price_cents = int(room.price_per_week * 100)
-    
     if request.is_secure():
         protocol = 'https://'
     else:
         protocol = 'http://'
     host = request.get_host()
-    
     session = stripe.checkout.Session.create(
         payment_method_types=['card'],
         line_items=[{
