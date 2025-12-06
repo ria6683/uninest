@@ -1,4 +1,7 @@
+import os
 
+# 1. UPDATE VIEWS.PY (Remove @login_required from Payment)
+views_code = """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
@@ -136,3 +139,85 @@ def create_checkout_session(request, pk):
 
 def payment_success(request):
     return render(request, 'core/success.html')
+"""
+
+# 2. UPDATE ROOM_DETAIL.HTML (Show forms to everyone)
+room_detail_html = """{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8">
+            {% if room.image %}
+                <img src="{{ room.image.url }}" class="img-fluid rounded shadow-sm mb-4 w-100" style="max-height: 500px; object-fit: cover;">
+            {% endif %}
+            
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h2 class="mb-2 fw-bold">{{ room.title }}</h2>
+                    <p class="text-muted fs-5"><i class="bi bi-geo-alt-fill text-danger"></i> {{ room.address }}, {{ room.suburb }}</p>
+                </div>
+                <div class="text-end">
+                    <h3 class="text-primary fw-bold">${{ room.price_per_week }}</h3>
+                    <small class="text-muted">per week</small>
+                </div>
+            </div>
+
+            <div class="card bg-light border-0 p-3 mb-4 mt-3">
+                <h5 class="fw-bold"><i class="bi bi-calendar-check"></i> Inspection Time</h5>
+                {% if room.inspection_time %}
+                    <p class="mb-0 text-success fw-bold fs-5">{{ room.inspection_time }}</p>
+                {% else %}
+                    <p class="mb-0 text-muted">Contact owner to arrange inspection.</p>
+                {% endif %}
+            </div>
+
+            <h5>Description</h5>
+            <p class="text-muted" style="line-height: 1.8;">{{ room.description|linebreaks }}</p>
+            
+            <hr>
+            
+            <div class="card border-primary mb-4">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="text-primary fw-bold">Ready to move in?</h5>
+                        <p class="mb-0 small">Secure this room by paying the bond online.</p>
+                    </div>
+                    <form action="{% url 'create_checkout_session' room.pk %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-credit-card"></i> Pay Bond (Secure)</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="ratio ratio-21x9 bg-secondary bg-opacity-10 border rounded">
+                 <iframe src="https://maps.google.com/maps?q={{ room.address|urlencode }},{{ room.suburb|urlencode }}&output=embed"></iframe>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow border-0 sticky-top" style="top: 20px;">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0">Contact Owner</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-success w-100 fw-bold py-2">Send Message</button>
+                    </form>
+                    <p class="text-muted small text-center mt-3 mb-0">The owner will receive this in their dashboard.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}"""
+
+# Write the files
+with open('core/views.py', 'w') as f:
+    f.write(views_code)
+
+with open('templates/core/room_detail.html', 'w') as f:
+    f.write(room_detail_html)
+
+print("✅ Website is now Public (Guests can Pay & Contact)!")
