@@ -1,4 +1,7 @@
-<!DOCTYPE html>
+import os
+
+# UPDATED BASE.HTML (With your specific Instagram Link)
+base_html = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -67,4 +70,9 @@
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-</html>
+</html>"""
+
+with open('templates/base.html', 'w') as f:
+    f.write(base_html)
+
+print("✅ Instagram Link Updated!")
