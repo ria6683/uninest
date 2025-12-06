@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="card shadow-lg" style="max-height: 80vh;">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                Chat regarding: <strong>{{ inquiry.room.title }}</strong>
+            </h5>
+            <a href="{% url 'dashboard' %}" class="btn btn-sm btn-light">Back to Dashboard</a>
+        </div>
+        
+        <div class="card-body overflow-auto" id="chat-box" style="height: 500px; background: #f8f9fa;">
+            {% for msg in messages %}
+                <div class="d-flex {% if msg.sender == user %}justify-content-end{% else %}justify-content-start{% endif %} mb-3">
+                    <div class="card p-3 shadow-sm {% if msg.sender == user %}bg-primary text-white{% else %}bg-white text-dark{% endif %}" style="max-width: 70%; border-radius: 15px;">
+                        <small class="d-block {% if msg.sender == user %}text-light{% else %}text-muted{% endif %} mb-1" style="font-size: 0.75rem;">
+                            {{ msg.sender.username }} • {{ msg.created_at|date:"D H:i" }}
+                        </small>
+                        {{ msg.text }}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-center text-muted mt-5">No messages yet. Start the conversation!</p>
+            {% endfor %}
+        </div>
+
+        <div class="card-footer bg-white">
+            <form method="post" class="d-flex gap-2">
+                {% csrf_token %}
+                {{ form.text }}
+                <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill"></i></button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-scroll to bottom of chat
+    var chatBox = document.getElementById("chat-box");
+    chatBox.scrollTop = chatBox.scrollHeight;
+    
+    // Simple Auto-Reload every 5 seconds (Poor man's real-time chat)
+    setTimeout(function(){
+       location.reload(); 
+    }, 5000);
+</script>
+{% endblock %}

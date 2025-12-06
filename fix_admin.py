@@ -1,4 +1,7 @@
+import os
 
+# UPDATED ADMIN.PY (Compatible with Chat & Referrals)
+admin_code = """
 from django.contrib import admin
 from .models import Room, Inquiry, Message, Profile
 
@@ -23,3 +26,9 @@ class MessageAdmin(admin.ModelAdmin):
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'referral_code', 'referred_by')
+"""
+
+with open('core/admin.py', 'w') as f:
+    f.write(admin_code)
+
+print("✅ Admin Panel fixed!")

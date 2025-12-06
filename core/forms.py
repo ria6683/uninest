@@ -1,6 +1,5 @@
-
 from django import forms
-from .models import Room, Inquiry
+from .models import Room, Message
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core import validators
@@ -21,18 +20,17 @@ class RoomForm(forms.ModelForm):
             'image': forms.FileInput(attrs={'class': 'form-control'}),
         }
 
-class InquiryForm(forms.ModelForm):
+class MessageForm(forms.ModelForm):
     class Meta:
-        model = Inquiry
-        fields = ['name', 'email', 'message']
+        model = Message
+        fields = ['text']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your Name'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Your Email'}),
-            'message': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Hi, is this still available?'}),
+            'text': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Type a message...'}),
         }
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
+    referral_code = forms.CharField(required=False, help_text="Have a referral code? Enter it here.", widget=forms.TextInput(attrs={'class': 'form-control'}))
     
     class Meta:
         model = User
@@ -40,7 +38,4 @@ class RegisterForm(UserCreationForm):
     
     def __init__(self, *args, **kwargs):
         super(RegisterForm, self).__init__(*args, **kwargs)
-        # Remove the strict "username characters" help text
-        self.fields['username'].help_text = "Enter a unique username. Spaces and special characters are allowed."
-        # Note: Extensive changes to validation require database schema changes, 
-        # but this removes the strict UI warning.
+        self.fields['username'].help_text = "Enter a unique username. Spaces are allowed."
