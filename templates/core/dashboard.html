@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-speedometer2"></i> My Dashboard</h2>
+        <a href="{% url 'create_room' %}" class="btn btn-warning fw-bold">Post New Room</a>
+    </div>
+
+    <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="rooms-tab" data-bs-toggle="tab" data-bs-target="#rooms" type="button">My Listings</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages" type="button">Inbox <span class="badge bg-danger">{{ inquiries.count }}</span></button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="rooms">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light"><tr><th>Image</th><th>Title</th><th>Price</th><th>Inspection</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        {% for room in rooms %}
+                        <tr>
+                            <td width="100">
+                                {% if room.image %}<img src="{{ room.image.url }}" width="80" class="rounded">{% else %}No Img{% endif %}
+                            </td>
+                            <td>{{ room.title }}<br><small class="text-muted">{{ room.suburb }}</small></td>
+                            <td>${{ room.price_per_week }}</td>
+                            <td>
+                                {% if room.inspection_time %}
+                                    <span class="badge bg-success">{{ room.inspection_time }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Not Set</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'edit_room' room.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <a href="{% url 'delete_room' room.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center py-4">You haven't posted any rooms yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="messages">
+            <div class="list-group">
+                {% for msg in inquiries %}
+                <div class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1 text-primary">{{ msg.name }}</h5>
+                        <small class="text-muted">{{ msg.created_at|date:"M d, Y" }}</small>
+                    </div>
+                    <p class="mb-1"><strong>Re: {{ msg.room.title }}</strong></p>
+                    <p class="mb-1 fst-italic">"{{ msg.message }}"</p>
+                    <small>Email: <a href="mailto:{{ msg.email }}">{{ msg.email }}</a></small>
+                </div>
+                {% empty %}
+                <div class="text-center py-5 text-muted">No messages yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

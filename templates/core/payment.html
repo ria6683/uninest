@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h4><i class="bi bi-shield-lock"></i> Secure Payment</h4>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted text-center">You are paying the bond for:</p>
+                    <h5 class="text-center mb-4">{{ room.title }}</h5>
+                    
+                    <div class="alert alert-info">
+                        <strong>Amount Due:</strong> ${{ room.price_per_week }} (1 Week Bond)
+                    </div>
+
+                    <form onsubmit="alert('Payment Successful! (This is a demo)'); return false;">
+                        <div class="mb-3">
+                            <label class="form-label">Cardholder Name</label>
+                            <input type="text" class="form-control" placeholder="John Doe" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Card Number</label>
+                            <input type="text" class="form-control" placeholder="0000 0000 0000 0000" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Expiry</label>
+                                <input type="text" class="form-control" placeholder="MM/YY" required>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label">CVC</label>
+                                <input type="text" class="form-control" placeholder="123" required>
+                            </div>
+                        </div>
+                        <button class="btn btn-success w-100 btn-lg mt-3">Pay Now</button>
+                        <a href="{% url 'room_detail' room.pk %}" class="btn btn-link w-100 mt-2 text-muted">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

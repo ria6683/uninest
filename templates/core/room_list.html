@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+    <h2>Available Rooms</h2>
+    <div class="row">
+        {% for room in page_obj %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                {% if room.image %}<img src="{{ room.image.url }}" class="card-img-top" style="height:180px;object-fit:cover;">{% endif %}
+                <div class="card-body">
+                    <h5>{{ room.title }}</h5>
+                    <p>{{ room.suburb }} - ${{ room.price_per_week }}</p>
+                    <a href="{% url 'room_detail' room.pk %}" class="btn btn-primary w-100">Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

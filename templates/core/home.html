@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="text-white text-center py-5" style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') no-repeat center center; background-size: cover; padding-top: 100px !important; padding-bottom: 100px !important;">
+    <div class="container">
+        <h1 class="display-3 fw-bold mb-3" style="font-family: 'Montserrat', sans-serif;">Find Your Comfort Zone</h1>
+        <p class="lead fs-4 mb-5">Affordable rooms and student accommodation in Melbourne.</p>
+        
+        <div class="card p-4 mx-auto shadow-lg border-0" style="max-width: 900px; border-radius: 15px; background: rgba(255, 255, 255, 0.95);">
+            <form action="{% url 'room_list' %}" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-geo-alt"></i></span>
+                        <input type="text" name="q" class="form-control" placeholder="Suburb (e.g. Carlton)">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="room_type" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="private">Private Room</option>
+                        <option value="shared">Shared Room</option>
+                        <option value="studio">Studio</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white">$</span>
+                        <input type="number" name="max_price" class="form-control" placeholder="Max Budget">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <h3>Featured Rooms</h3>
+        <a href="{% url 'room_list' %}" class="text-decoration-none">View All &rarr;</a>
+    </div>
+    
+    <div class="row">
+        {% for room in latest_rooms %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 hover-shadow transition">
+                {% if room.image %}
+                    <img src="{{ room.image.url }}" class="card-img-top" alt="{{ room.title }}" style="height: 220px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-light text-secondary d-flex align-items-center justify-content-center" style="height: 220px;">
+                        <i class="bi bi-image fs-1"></i>
+                    </div>
+                {% endif %}
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="badge bg-info text-dark">{{ room.get_room_type_display }}</span>
+                        <span class="text-muted small"><i class="bi bi-clock"></i> {{ room.created_at|timesince }} ago</span>
+                    </div>
+                    <h5 class="card-title text-truncate">{{ room.title }}</h5>
+                    <p class="card-text text-muted small"><i class="bi bi-geo-alt-fill text-danger"></i> {{ room.suburb }}</p>
+                    <h5 class="text-primary fw-bold mb-0">${{ room.price_per_week }} <span class="small text-muted fw-normal">/week</span></h5>
+                </div>
+                <div class="card-footer bg-white border-top-0 pb-3">
+                    <a href="{% url 'room_detail' room.pk %}" class="btn btn-outline-primary w-100">View Listing</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
