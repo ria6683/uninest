@@ -3,8 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.conf import settings
+from django.urls import reverse
+import stripe
 from .models import Room, Inquiry
 from .forms import RoomForm, InquiryForm, RegisterForm
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def home(request):
     latest_rooms = Room.objects.order_by('-created_at')[:3]
@@ -58,11 +63,8 @@ def register(request):
 
 @login_required
 def dashboard(request):
-    # Get my rooms
     user_rooms = Room.objects.filter(owner=request.user).order_by('-created_at')
-    # Get messages sent to my rooms
     user_inquiries = Inquiry.objects.filter(room__owner=request.user).order_by('-created_at')
-    
     return render(request, 'core/dashboard.html', {'rooms': user_rooms, 'inquiries': user_inquiries})
 
 @login_required
@@ -99,6 +101,37 @@ def delete_room(request, pk):
     return render(request, 'core/room_confirm_delete.html', {'room': room})
 
 @login_required
-def payment_page(request, pk):
+def create_checkout_session(request, pk):
     room = get_object_or_404(Room, pk=pk)
-    return render(request, 'core/payment.html', {'room': room})
+    
+    # Calculate price in cents
+    price_cents = int(room.price_per_week * 100)
+    
+    # Determine domain (Local vs Live)
+    if request.is_secure():
+        protocol = 'https://'
+    else:
+        protocol = 'http://'
+    host = request.get_host()
+    
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[{
+            'price_data': {
+                'currency': 'aud',
+                'product_data': {
+                    'name': f"Bond Payment: {room.title}",
+                    'description': f"1 week rent for {room.suburb} property.",
+                },
+                'unit_amount': price_cents,
+            },
+            'quantity': 1,
+        }],
+        mode='payment',
+        success_url=f"{protocol}{host}/payment_success/",
+        cancel_url=f"{protocol}{host}/rooms/{pk}/",
+    )
+    return redirect(session.url, code=303)
+
+def payment_success(request):
+    return render(request, 'core/success.html')

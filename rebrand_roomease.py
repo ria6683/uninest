@@ -1,4 +1,62 @@
-{% extends 'base.html' %}
+import os
+
+# 1. BASE.HTML (Updates "UniNest" to "RoomEase" + keeps the logo font)
+base_html = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoomEase | Student Living</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap" rel="stylesheet">
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary py-3"> 
+        <div class="container">
+            <a class="navbar-brand" href="/" style="font-family: 'Montserrat', sans-serif; font-size: 1.8rem; letter-spacing: -1px;">
+                <i class="bi bi-door-open-fill"></i> RoomEase
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link text-white mx-2" href="/rooms/">Browse</a></li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item"><a class="nav-link text-white mx-2" href="/dashboard/">My Dashboard</a></li>
+                        <li class="nav-item">
+                            <form action="/accounts/logout/" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button class="btn btn-outline-light btn-sm ms-2" type="submit">Logout</button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link text-white mx-2" href="/accounts/login/">Login</a></li>
+                        <li class="nav-item"><a class="btn btn-warning fw-bold text-dark ms-2" href="/register/">Post a Room</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <h5 style="font-family: 'Montserrat', sans-serif;">RoomEase</h5>
+            <p class="mb-0 text-muted small">© 2025 RoomEase Student Living.</p>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>"""
+
+# 2. HOME.HTML (Updates Hero Text to "RoomEase")
+home_html = """{% extends 'base.html' %}
 {% block content %}
 <section class="text-white text-center py-5" style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') no-repeat center center; background-size: cover; padding-top: 100px !important; padding-bottom: 100px !important;">
     <div class="container">
@@ -69,4 +127,15 @@
         {% endfor %}
     </div>
 </div>
-{% endblock %}
+{% endblock %}"""
+
+# Write the files
+with open('templates/base.html', 'w') as f:
+    f.write(base_html)
+    print("Updated: templates/base.html (Brand: RoomEase)")
+
+with open('templates/core/home.html', 'w') as f:
+    f.write(home_html)
+    print("Updated: templates/core/home.html (Hero Text)")
+
+print("✅ Rebrand to 'RoomEase' complete!")

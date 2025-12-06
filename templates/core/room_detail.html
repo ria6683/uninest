@@ -38,7 +38,10 @@
                         <h5 class="text-primary fw-bold">Ready to move in?</h5>
                         <p class="mb-0 small">Secure this room by paying the bond online.</p>
                     </div>
-                    <a href="{% url 'payment_page' room.pk %}" class="btn btn-primary btn-lg"><i class="bi bi-credit-card"></i> Pay Bond</a>
+                    <form action="{% url 'create_checkout_session' room.pk %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-credit-card"></i> Pay Bond (Secure)</button>
+                    </form>
                 </div>
             </div>
 
