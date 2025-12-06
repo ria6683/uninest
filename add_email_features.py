@@ -1,4 +1,111 @@
 
+import os
+
+
+# 1. UPDATE SETTINGS.PY (Configure Gmail)
+
+# Note: We append this to the end of the file
+
+settings_additions = """
+
+# EMAIL CONFIGURATION
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_HOST = 'smtp.gmail.com'
+
+EMAIL_PORT = 587
+
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'roomease00@gmail.com'
+
+EMAIL_HOST_PASSWORD = 'wqpo poxa hayf ybfh'  # <--- REPLACE THIS
+
+"""
+
+
+with open('melbourne_rentals/settings.py', 'a') as f:
+
+    f.write(settings_additions)
+
+
+# 2. UPDATE URLS.PY (Add Password Reset Routes)
+
+urls_code = """
+
+from django.urls import path, include
+
+from django.contrib.auth import views as auth_views
+
+from . import views
+
+
+urlpatterns = [
+
+    # Standard Views
+
+    path('', views.home, name='home'),
+
+    path('rooms/', views.room_list, name='room_list'),
+
+    path('rooms/<int:pk>/', views.room_detail, name='room_detail'),
+
+    
+
+    # Chat & Payments
+
+    path('rooms/<int:room_id>/chat/', views.start_chat, name='start_chat'),
+
+    path('chat/<int:pk>/', views.chat_detail, name='chat_detail'),
+
+    path('rooms/<int:pk>/checkout/', views.create_checkout_session, name='create_checkout_session'),
+
+    path('payment_success/', views.payment_success, name='payment_success'),
+
+    
+
+    # Auth & Dashboard
+
+    path('register/', views.register, name='register'),
+
+    path('dashboard/', views.dashboard, name='dashboard'),
+
+    path('dashboard/create/', views.create_room, name='create_room'),
+
+    path('dashboard/edit/<int:pk>/', views.edit_room, name='edit_room'),
+
+    path('dashboard/delete/<int:pk>/', views.delete_room, name='delete_room'),
+
+    
+
+    # PASSWORD RESET URLS (Built-in Django Magic)
+
+    path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
+
+    path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
+
+    path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+
+]
+
+"""
+
+
+with open('core/urls.py', 'w') as f:
+
+    f.write(urls_code)
+
+
+# 3. UPDATE VIEWS.PY (Send Email on Chat Message)
+
+views_code = """
 
 from django.shortcuts import render, redirect, get_object_or_404
 
@@ -145,11 +252,7 @@ def chat_detail(request, pk):
 
             subject = f"New Chat Message from {request.user.username}"
 
-            body = f"User: {request.user.username}
-Room: {inquiry.room.title}
-
-Message:
-{msg.text}"
+            body = f"User: {request.user.username}\nRoom: {inquiry.room.title}\n\nMessage:\n{msg.text}"
 
             try:
 
@@ -358,4 +461,166 @@ def create_checkout_session(request, pk):
 def payment_success(request):
 
     return render(request, 'core/success.html')
+
+"""
+
+
+with open('core/views.py', 'w') as f:
+
+    f.write(views_code)
+
+
+# 4. CREATE PASSWORD RESET TEMPLATES
+
+# Form to request reset
+
+reset_form_html = """{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container py-5 text-center" style="max-width: 500px;">
+
+    <h3>Reset Password</h3>
+
+    <p>Enter your email address and we'll send you a link to reset your password.</p>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        <div class="mb-3">{{ form.email.label_tag }} {{ form.email }}</div>
+
+        <button type="submit" class="btn btn-primary w-100">Send Reset Link</button>
+
+    </form>
+
+</div>
+
+<script>
+
+    // Add bootstrap class to input
+
+    document.querySelector('input[type="email"]').classList.add('form-control');
+
+</script>
+
+{% endblock %}"""
+
+
+# Email sent confirmation
+
+reset_done_html = """{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container py-5 text-center">
+
+    <h3>Check your inbox!</h3>
+
+    <p>We've emailed you instructions for setting your password.</p>
+
+    <p>If you don't receive an email, please check your spam folder.</p>
+
+</div>
+
+{% endblock %}"""
+
+
+# Form to enter new password
+
+reset_confirm_html = """{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container py-5" style="max-width: 500px;">
+
+    <h3 class="text-center">Set New Password</h3>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit" class="btn btn-success w-100 mt-3">Change Password</button>
+
+    </form>
+
+</div>
+
+{% endblock %}"""
+
+
+# Success page
+
+reset_complete_html = """{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container py-5 text-center">
+
+    <h3 class="text-success">Password Changed!</h3>
+
+    <p>Your password has been set. You may go ahead and log in now.</p>
+
+    <a href="/accounts/login/" class="btn btn-primary">Log In</a>
+
+</div>
+
+{% endblock %}"""
+
+
+# Add "Forgot Password?" link to Login page
+
+login_html = """{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container py-5" style="max-width:400px;">
+
+    <h2>Login</h2>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button class="btn btn-primary w-100">Login</button>
+
+    </form>
+
+    <div class="mt-3 text-center">
+
+        <a href="{% url 'password_reset' %}" class="text-muted small">Forgot Password?</a>
+
+    </div>
+
+</div>
+
+{% endblock %}"""
+
+
+with open('templates/registration/password_reset_form.html', 'w') as f:
+
+    f.write(reset_form_html)
+
+with open('templates/registration/password_reset_done.html', 'w') as f:
+
+    f.write(reset_done_html)
+
+with open('templates/registration/password_reset_confirm.html', 'w') as f:
+
+    f.write(reset_confirm_html)
+
+with open('templates/registration/password_reset_complete.html', 'w') as f:
+
+    f.write(reset_complete_html)
+
+with open('templates/registration/login.html', 'w') as f:
+
+    f.write(login_html)
+
+
+print("✅ Email & Password Reset configured!")
 

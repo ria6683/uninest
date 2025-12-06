@@ -75,3 +75,19 @@ LOGOUT_REDIRECT_URL = 'home'
 # STRIPE SETTINGS
 STRIPE_PUBLISHABLE_KEY = 'pk_test_51SbCysQnGxb6XWPlxVVYgmAUFstb9ng61hDW4RkszNYW0ZQK4GVZnXPdqtt5cQKHRxIxOvl65TOgjPLiRp8T9fHp00ZCYheFGt'
 STRIPE_SECRET_KEY = 'sk_test_51SbCysQnGxb6XWPlM3lJCwaHLlSurB7CaxkF5Bu2eCya7q8hzY9GGyMoc2CCE8jkRz7Fq6j3b20J0Dva5ABQFo1h00PnWQiGLc'
+
+
+# EMAIL CONFIGURATION
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_HOST = 'smtp.gmail.com'
+
+EMAIL_PORT = 587
+
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'roomease00@gmail.com'
+
+EMAIL_HOST_PASSWORD = 'wqpo poxa hayf ybfh'  # <--- REPLACE THIS
+
